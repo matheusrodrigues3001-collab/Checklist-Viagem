@@ -1,1 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Checklist da Viagem</title>
 
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(180deg,#dbeafe,#bfdbfe,#e0f2fe);
+    display: flex;
+    justify-content: center;
+    padding: 25px;
+}
+
+.container {
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(12px);
+    width: 100%;
+    max-width: 600px;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+h1 { text-align: center; color:#1e3a8a; }
+
+.secao {
+    margin-top: 15px;
+    background: white;
+    border-radius: 14px;
+    padding: 12px;
+    border: 1px solid #dbeafe;
+}
+
+.tarefa {
+    display: flex;
+    align-items: center;
+    margin: 6px 0;
+    font-size: 14px;
+}
+
+.tarefa input { margin-right: 8px; }
+
+.concluida {
+    text-decoration: line-through;
+    color: #16a34a;
+}
+
+.progresso-box {
+    margin-top: 15px;
+    background: #e0f2fe;
+    border-radius: 10px;
+    padding: 8px;
+    font-size: 13px;
+}
+
+button {
+    width: 100%;
+    margin-top: 15px;
+    padding: 8px;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    background: #2563eb;
+    color: white;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>✅ Checklist da Viagem</h1>
+
+<div id="lista"></div>
+
+<div class="progresso-box" id="progresso">Progresso: 0%</div>
+
+<button onclick="window.location.href='https://matheusrodrigues3001-collab.github.io/Pagina-Inicial---Viagem/'">
+⬅ Voltar ao Início
+</button>
+
+</div>
+
+<script>
+const tarefasPadrao = [
+{secao:"ANTES DA VIAGEM",itens:["Comprar passagem","Reservar hotel","Comprar Snowland","Comprar Skyglass","Reservar Fondue","Separar documentos","Ver clima","Fazer mala"]},
+{secao:"NA SEMANA DA VIAGEM",itens:["Confirmar reservas","Check-in voo","Baixar mapas offline","Avisar banco","Separar roupas de frio"]},
+{secao:"DURANTE A VIAGEM",itens:["Fotos Lago Negro","Chocolate quente","Comprar lembranças","Ver horário ônibus"]}
+];
+
+let tarefas = JSON.parse(localStorage.getItem("checklistViagem")) || tarefasPadrao;
+
+function salvar(){ localStorage.setItem("checklistViagem", JSON.stringify(tarefas)); }
+
+function render(){
+    lista.innerHTML="";
+    let total=0, feitas=0;
+
+    tarefas.forEach((sec,s)=>{
+        lista.innerHTML+=`<div class="secao"><strong>${sec.secao}</strong>`;
+        sec.itens.forEach((t,i)=>{
+            total++;
+            const checked = t.concluida ? "checked" : "";
+            if(t.concluida) feitas++;
+            lista.innerHTML+=`
+            <div class="tarefa ${t.concluida?"concluida":""}">
+                <input type="checkbox" ${checked} onchange="toggle(${s},${i})">
+                ${t.nome || t}
+            </div>`;
+        });
+        lista.innerHTML+="</div>";
+    });
+
+    progresso.innerHTML=`Progresso: ${Math.round((feitas/total)*100)}%`;
+}
+
+function toggle(s,i){
+    if(typeof tarefas[s].itens[i] === "string"){
+        tarefas[s].itens[i] = {nome:tarefas[s].itens[i], concluida:true};
+    } else {
+        tarefas[s].itens[i].concluida = !tarefas[s].itens[i].concluida;
+    }
+    salvar();
+    render();
+}
+
+render();
+</script>
+
+</body>
+</html>
