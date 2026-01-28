@@ -6,6 +6,8 @@
 <title>Checklist da Viagem</title>
 
 <style>
+* { box-sizing: border-box; }
+
 body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
@@ -16,57 +18,75 @@ body {
 }
 
 .container {
-    background: rgba(255,255,255,0.8);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(14px);
+    background: rgba(255,255,255,0.75);
     width: 100%;
     max-width: 600px;
-    border-radius: 20px;
-    padding: 20px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    border-radius: 22px;
+    padding: 22px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.15);
 }
 
-h1 { text-align: center; color:#1e3a8a; }
-
-.secao {
-    margin-top: 15px;
-    background: white;
-    border-radius: 14px;
-    padding: 12px;
-    border: 1px solid #dbeafe;
+h1 {
+    text-align: center;
+    color: #1e3a8a;
 }
 
-.tarefa {
-    display: flex;
-    align-items: center;
+input {
+    width: 100%;
+    padding: 10px;
     margin: 6px 0;
+    border-radius: 12px;
+    border: 1px solid #c7d2fe;
     font-size: 14px;
 }
 
-.tarefa input { margin-right: 8px; }
-
-.concluida {
-    text-decoration: line-through;
-    color: #16a34a;
-}
-
-.progresso-box {
-    margin-top: 15px;
-    background: #e0f2fe;
+button {
+    border: none;
     border-radius: 10px;
-    padding: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
     font-size: 13px;
 }
 
-button {
+.primary {
     width: 100%;
-    margin-top: 15px;
-    padding: 8px;
-    border: none;
-    border-radius: 10px;
-    font-weight: bold;
-    background: #2563eb;
+    background: #3b82f6;
     color: white;
-    cursor: pointer;
+    margin-top: 6px;
+}
+
+.voltar {
+    width: 100%;
+    background: #64748b;
+    color: white;
+    margin-top: 12px;
+}
+
+.tarefa {
+    background: white;
+    padding: 8px;
+    margin-top: 8px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #dbeafe;
+    font-size: 14px;
+}
+
+.concluida span {
+    text-decoration: line-through;
+    color: #16a34a;
+    font-weight: bold;
+}
+
+.acoes button {
+    margin-left: 4px;
+    background: #3b82f6;
+    color: white;
+    font-size: 12px;
+    padding: 3px 6px;
 }
 </style>
 </head>
@@ -76,60 +96,76 @@ button {
 
 <h1>✅ Checklist da Viagem</h1>
 
-<div id="lista"></div>
+<input type="text" id="novaTarefa" placeholder="Ex: Reservar restaurante, comprar passagem...">
+<button class="primary" onclick="adicionarTarefa()">Adicionar tarefa</button>
 
-<div class="progresso-box" id="progresso">Progresso: 0%</div>
+<div id="listaTarefas"></div>
 
-<button onclick="window.location.href='https://matheusrodrigues3001-collab.github.io/Pagina-Inicial---Viagem/'">
+<button class="voltar" onclick="window.location.href='https://matheusrodrigues3001-collab.github.io/Pagina-Inicial---Viagem/'">
 ⬅ Voltar ao Início
 </button>
 
 </div>
 
 <script>
-const tarefasPadrao = [
-{secao:"ANTES DA VIAGEM",itens:["Comprar passagem","Reservar hotel","Comprar Snowland","Comprar Skyglass","Reservar Fondue","Separar documentos","Ver clima","Fazer mala"]},
-{secao:"NA SEMANA DA VIAGEM",itens:["Confirmar reservas","Check-in voo","Baixar mapas offline","Avisar banco","Separar roupas de frio"]},
-{secao:"DURANTE A VIAGEM",itens:["Fotos Lago Negro","Chocolate quente","Comprar lembranças","Ver horário ônibus"]}
-];
+let tarefas = JSON.parse(localStorage.getItem("checklistViagem")) || [];
 
-let tarefas = JSON.parse(localStorage.getItem("checklistViagem")) || tarefasPadrao;
-
-function salvar(){ localStorage.setItem("checklistViagem", JSON.stringify(tarefas)); }
-
-function render(){
-    lista.innerHTML="";
-    let total=0, feitas=0;
-
-    tarefas.forEach((sec,s)=>{
-        lista.innerHTML+=`<div class="secao"><strong>${sec.secao}</strong>`;
-        sec.itens.forEach((t,i)=>{
-            total++;
-            const checked = t.concluida ? "checked" : "";
-            if(t.concluida) feitas++;
-            lista.innerHTML+=`
-            <div class="tarefa ${t.concluida?"concluida":""}">
-                <input type="checkbox" ${checked} onchange="toggle(${s},${i})">
-                ${t.nome || t}
-            </div>`;
-        });
-        lista.innerHTML+="</div>";
-    });
-
-    progresso.innerHTML=`Progresso: ${Math.round((feitas/total)*100)}%`;
+function salvar(){
+    localStorage.setItem("checklistViagem", JSON.stringify(tarefas));
 }
 
-function toggle(s,i){
-    if(typeof tarefas[s].itens[i] === "string"){
-        tarefas[s].itens[i] = {nome:tarefas[s].itens[i], concluida:true};
-    } else {
-        tarefas[s].itens[i].concluida = !tarefas[s].itens[i].concluida;
-    }
+function adicionarTarefa(){
+    const texto = novaTarefa.value.trim();
+    if(!texto) return alert("Digite uma tarefa!");
+    tarefas.push({texto, concluida:false});
+    novaTarefa.value="";
     salvar();
-    render();
+    renderizar();
 }
 
-render();
+function editarTarefa(index){
+    const novoTexto = prompt("Editar tarefa:", tarefas[index].texto);
+    if(novoTexto){
+        tarefas[index].texto = novoTexto;
+        salvar();
+        renderizar();
+    }
+}
+
+function excluirTarefa(index){
+    if(confirm("Excluir tarefa?")){
+        tarefas.splice(index,1);
+        salvar();
+        renderizar();
+    }
+}
+
+function toggleConcluida(index){
+    tarefas[index].concluida = !tarefas[index].concluida;
+    salvar();
+    renderizar();
+}
+
+function renderizar(){
+    listaTarefas.innerHTML = "";
+
+    tarefas.forEach((t,i)=>{
+        listaTarefas.innerHTML += `
+        <div class="tarefa ${t.concluida ? "concluida" : ""}">
+            <span>
+                <input type="checkbox" ${t.concluida ? "checked" : ""} onclick="toggleConcluida(${i})">
+                ${t.texto}
+            </span>
+            <div class="acoes">
+                <button onclick="editarTarefa(${i})">✏️</button>
+                <button onclick="excluirTarefa(${i})">🗑️</button>
+            </div>
+        </div>
+        `;
+    });
+}
+
+renderizar();
 </script>
 
 </body>
